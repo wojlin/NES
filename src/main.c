@@ -2,8 +2,12 @@
 
 #include "../include/nes.h"
 #include "../include/status_register.h"
+#include "../include/rom_reader.h"
 
-void print_status_register(StatusRegister *status_register) 
+nes_t nes;
+rom_t rom;
+
+void print_status_register(status_register_t *status_register) 
 {
     printf("### status register ###\n");
     printf("value: ");
@@ -23,11 +27,15 @@ void print_status_register(StatusRegister *status_register)
 
 int main()
 {
-    NES nes;
+    
+    read_rom(&rom, "../roms/Super_mario_brothers.nes");
+
     uint8_t new = 0b00000011;
     update_status_register_by_value(&nes.status_register, new);
     print_status_register(&nes.status_register);
     update_status_register_by_field(&nes.status_register, NEGATIVE_FLAG, true);
     print_status_register(&nes.status_register);
+
+    
     return 0;
 }

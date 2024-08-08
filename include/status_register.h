@@ -15,7 +15,7 @@ typedef struct
     bool break_command;
     bool overflow_flag;
     bool negative_flag;
-} StatusRegister;
+} status_register_t;
 
 
 typedef enum {
@@ -26,10 +26,10 @@ typedef enum {
     BREAK_COMMAND,
     OVERFLOW_FLAG,
     NEGATIVE_FLAG
-} StatusField;
+} status_field_t;
 
 
-void update_status_register_by_field(StatusRegister *status_register, StatusField field, bool value);
-void update_status_register_by_value(StatusRegister *status_register, uint8_t new_value);
+void update_status_register_by_field(status_register_t *status_register, status_field_t field, bool value);
+void update_status_register_by_value(status_register_t *status_register, uint8_t new_value);
 
 #endif // STATUS_REGISTER_H

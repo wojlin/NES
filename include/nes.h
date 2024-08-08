@@ -41,10 +41,10 @@ typedef struct
     uint8_t index_register_x;
     uint8_t index_register_y;
 
-    StatusRegister status_register;
+    status_register_t status_register;
 
 
-} NES;
+} nes_t;
 
 
 
