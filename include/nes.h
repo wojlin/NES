@@ -15,8 +15,8 @@
 #define IO_REGISTERS_SIZE 34            // io registers from (0x2000-0x2007) (8192-8199) and (0x4000-0x401F) (16384-16415)     
 #define EXPANSION_ROM_SIZE 8160         // expansion rom from (0X4020-0x5FFF) (16416-24575) 8160
 #define SRAM_SIZE 8189                  // sram from (0x6000-0x7FFD) (24576-32765)
-#define PRG_ROM_LOWER_BANK_SIZE 16383   // prg-rom lower bank from (0x8000-0xBFFF) (32768-49151)
-#define PRG_ROM_UPPER_BANK_SIZE 16383   // prg-rom upper bank from (0xC000-0xFFFF) (49152-65535)
+#define PRG_ROM_LOWER_BANK_SIZE 16384   // prg-rom lower bank from (0x8000-0xBFFF) (32768-49151)
+#define PRG_ROM_UPPER_BANK_SIZE 16384   // prg-rom upper bank from (0xC000-0xFFFF) (49152-65535)
 
 
 // 0 0x0000 - 2047 0x07FF  is mirrored 3 times at    2048 0x0800  - 8191 0x1FFF 

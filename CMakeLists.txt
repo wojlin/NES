@@ -12,7 +12,7 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 include_directories(include)
 
 # Add the executable
-add_executable(nes_emulator src/main.c src/status_register.c src/rom_reader.c)
+add_executable(nes_emulator src/main.c src/status_register.c src/rom_file.c src/tileset.c)
 
 # Optional: Add compiler flags
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pedantic")

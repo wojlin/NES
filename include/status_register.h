@@ -32,4 +32,6 @@ typedef enum {
 void update_status_register_by_field(status_register_t *status_register, status_field_t field, bool value);
 void update_status_register_by_value(status_register_t *status_register, uint8_t new_value);
 
+void print_status_register(status_register_t *status_register);
+
 #endif // STATUS_REGISTER_H
