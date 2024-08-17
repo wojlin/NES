@@ -7,6 +7,7 @@
 #include <stdbool.h>
 
 #include "status_register.h"
+#include "cpu.h"
 
 #define MEMORY_SIZE 65535               // 64KB memory from 0x0000-0xFFFFF
 #define ZERO_PAGE_SIZE 256              // zero page from 0x000-0x00FF 0-255
@@ -35,32 +36,9 @@ typedef struct
     uint16_t pgr_rom_lower_bank[PRG_ROM_LOWER_BANK_SIZE];
     uint16_t pgr_rom_upper_bank[PRG_ROM_UPPER_BANK_SIZE];
 
-    uint16_t program_counter;
-    uint8_t stack_pointer;
-    uint8_t accumulator;
-    uint8_t index_register_x;
-    uint8_t index_register_y;
-
-    status_register_t status_register;
+    cpu_t cpu;
 
 
 } nes_t;
-
-
-
-
-/*
-
-int get_memory_cell(NES *nes, uint16_t address)
-{
-    if(address < )
-}
-
-void set_memory_cell(NES *nes, uint16_t address, uint16_t new_value)
-{
-    nes->memory[address] = new_value;
-}
-
-*/
 
 #endif // NES_H

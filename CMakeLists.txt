@@ -11,8 +11,11 @@ set(CMAKE_C_STANDARD_REQUIRED True)
 # Include directories
 include_directories(include)
 
+# Find all .c files in the src directory
+file(GLOB SOURCES "src/*.c")
+
 # Add the executable
-add_executable(nes_emulator src/main.c src/status_register.c src/rom_file.c src/tileset.c)
+add_executable(nes_emulator ${SOURCES})
 
 # Optional: Add compiler flags
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -pedantic")

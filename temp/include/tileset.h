@@ -4,11 +4,14 @@
 #include "../include/rom_file.h"
 
 #define TILES_AMOUNT 512
-
+#define TILE_SIZE_PX 8
+#define TILE_SIZE_BYTES 16
+#define TILE_PIXEL_SIZE_BITS 2
 
 typedef struct
 {
     uint8_t tile_id;
+    uint8_t color_index[TILE_SIZE_PX][TILE_SIZE_PX];
 }tile_t;
 
 typedef struct

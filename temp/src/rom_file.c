@@ -285,6 +285,7 @@ void print_rom_file(rom_t *rom)
 
     printf("prg rom banks amount: %d\n", rom->prg_banks_amount);
     printf("chr rom banks amount: %d\n", rom->chr_banks_amount);
+    printf("ram banks amount    : %d\n", rom->ram_banks_amount);
     printf("flags:\n");
     printf("    vertical mirror             : %s\n", rom->vertical_mirror ? "true" : "false");
     printf("    battery ram                 : %s\n", rom->battery_ram_presence ? "true" : "false");
