@@ -238,6 +238,216 @@ void cpu_opcode_ldx(cpu_t *cpu, uint8_t opcode)
     +----------------+-----------------------+---------+---------+----------+
     * Add 1 when page boundary is crossed.
 */
+void cpu_opcode_ldy(cpu_t *cpu, uint8_t opcode)
+{
+    switch(opcode)
+    {
+        case 0xA0:
+        {
+            cpu->y_register = cpu_fetch_byte(cpu);
+            break;
+        }
+        case 0xA4:
+        {
+            uint8_t address = cpu_fetch_byte(cpu);
+            cpu->y_register = cpu->memory[address];
+            break;
+        }
+        case 0xB4:
+        {
+            uint8_t address = cpu_fetch_byte(cpu);
+            cpu->y_register = cpu->memory[address + cpu->y_register];
+            break;
+        }
+        case 0xAC:
+        {
+            uint8_t address_high = cpu_fetch_byte(cpu);
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            uint16_t address = (address_high << 8) | address_low;
+            cpu->y_register = cpu->memory[address];
+            break;
+        }
+        case 0xBC:
+        {
+            uint8_t address_high = cpu_fetch_byte(cpu);
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            uint16_t address = (address_high << 8) | address_low;
+            address += cpu->x_register;
+            cpu->y_register = cpu->memory[address];
+            break;
+        }
+        default:
+        {
+            cpu_illegal_instruction(opcode);
+        }
+    };
+
+    if(cpu->y_register == 0)
+    {
+        status_register_update_by_field(&cpu->status_register, ZERO_FLAG, 1);
+    }
+    else
+    {
+        status_register_update_by_field(&cpu->status_register, ZERO_FLAG, 0);
+    }
+    
+    if((cpu->y_register >> 7) == 1)
+    {
+        status_register_update_by_field(&cpu->status_register, NEGATIVE_FLAG, 1);
+    }
+    else
+    {
+        status_register_update_by_field(&cpu->status_register, NEGATIVE_FLAG, 0);
+    }
+}
+
+/*
+    LSR          LSR Shift right one bit (memory or accumulator)          LSR
+
+                    +-+-+-+-+-+-+-+-+
+    Operation:  0 -> |7|6|5|4|3|2|1|0| -> C               N Z C I D V
+                    +-+-+-+-+-+-+-+-+                    0 / / _ _ _
+                                    (Ref: 10.1)
+    +----------------+-----------------------+---------+---------+----------+
+    | Addressing Mode| Assembly Language Form| OP CODE |No. Bytes|No. Cycles|
+    +----------------+-----------------------+---------+---------+----------+
+    |  Accumulator   |   LSR A               |    4A   |    1    |    2     |
+    |  Zero Page     |   LSR Oper            |    46   |    2    |    5     |
+    |  Zero Page,X   |   LSR Oper,X          |    56   |    2    |    6     |
+    |  Absolute      |   LSR Oper            |    4E   |    3    |    6     |
+    |  Absolute,X    |   LSR Oper,X          |    5E   |    3    |    7     |
+    +----------------+-----------------------+---------+---------+----------+
+*/
+void cpu_opcode_lsr(cpu_t *cpu, uint8_t opcode)
+{
+    uint8_t old_value;
+    uint16_t address;
+
+    switch(opcode)
+    {
+        case 0x4A:
+        {
+            old_value = cpu->accumulator;
+            cpu->accumulator >>= 1;
+            break;
+        }
+        case 0x46:
+        {   
+            address = cpu_fetch_byte(cpu);
+            old_value = cpu->memory[address];
+            cpu->memory[address] >>= 1;
+            break;
+        }
+        case 0x56:
+        {
+            address = cpu_fetch_byte(cpu) + cpu->x_register;
+            old_value = cpu->memory[address];
+            cpu->memory[address] >>= 1;
+            break;
+        }
+        case 0x4E:
+        {
+            uint8_t address_high = cpu_fetch_byte(cpu);
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            address = ((address_high << 8) | address_low);
+            old_value = cpu->memory[address];
+            cpu->memory[address] >>= 1;
+            break;
+        }
+        case 0x5E:
+        {
+            uint8_t address_high = cpu_fetch_byte(cpu);
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            address = ((address_high << 8) | address_low) + cpu->x_register;
+            old_value = cpu->memory[address];
+            cpu->memory[address] >>= 1;
+            break;
+        }
+        default:
+        {
+            cpu_illegal_instruction(opcode);
+        }
+    };
+
+    if((old_value & 0x01) != 0)
+    {
+        status_register_update_by_field(&cpu->status_register, CARRY_FLAG, 1);
+    }
+    else
+    {
+        status_register_update_by_field(&cpu->status_register, CARRY_FLAG, 0);
+    }
+
+    if(opcode == 0x4A)
+    {
+        if(cpu->accumulator == 0)
+        {
+            status_register_update_by_field(&cpu->status_register, ZERO_FLAG, 1);
+        }
+        else
+        {
+            status_register_update_by_field(&cpu->status_register, ZERO_FLAG, 0);
+        }
+
+        if((cpu->accumulator & 0x80) == 0x80)
+        {
+            status_register_update_by_field(&cpu->status_register, NEGATIVE_FLAG, 1);
+        }else
+        {
+            status_register_update_by_field(&cpu->status_register, NEGATIVE_FLAG, 0);
+        }
+
+    }else
+    {
+        if(cpu->memory[address] == 0)
+        {
+            status_register_update_by_field(&cpu->status_register, ZERO_FLAG, 1);
+        }
+        else
+        {
+            status_register_update_by_field(&cpu->status_register, ZERO_FLAG, 0);
+        }
+
+        if((cpu->memory[address] & 0x80) == 0x80)
+        {
+            status_register_update_by_field(&cpu->status_register, NEGATIVE_FLAG, 1);
+        }else
+        {
+            status_register_update_by_field(&cpu->status_register, NEGATIVE_FLAG, 0);
+        }
+    }
+
+
+    
+
+}
+
+
+/*
+    NOP                         NOP No operation                          NOP
+                                                        N Z C I D V
+    Operation:  No Operation (2 cycles)                   _ _ _ _ _ _
+
+    +----------------+-----------------------+---------+---------+----------+
+    | Addressing Mode| Assembly Language Form| OP CODE |No. Bytes|No. Cycles|
+    +----------------+-----------------------+---------+---------+----------+
+    |  Implied       |   NOP                 |    EA   |    1    |    2     |
+    +----------------+-----------------------+---------+---------+----------+
+*/
+void cpu_opcode_nop(cpu_t *cpu, uint8_t opcode)
+{
+    switch(opcode)
+    {
+        case 0xEA:
+        {
+            break;
+        }
+        default:
+        {
+            cpu_illegal_instruction(opcode);
+        }
+    };
+}
 
 cpu_opcode_entry_t cpu_opcode_table[] = {
     //instruction       size  cycles   opcode      handler
@@ -254,8 +464,19 @@ cpu_opcode_entry_t cpu_opcode_table[] = {
     {"LDX 0x%02x,Y"     , 2,    4,      0xB6,   cpu_opcode_ldx},    // Zero Page,Y
     {"LDX 0x%04x"       , 3,    4,      0xAE,   cpu_opcode_ldx},    // Absolute
     {"LDX 0x%04x,Y"     , 3,    4,      0xBE,   cpu_opcode_ldx},    // Absolute,Y
+    {"LDY #0x%02x"      , 2,    2,      0xA0,   cpu_opcode_ldy},    // Immediate addressing
+    {"LDY 0x%02x"       , 2,    3,      0xA4,   cpu_opcode_ldy},    // Zero Page
+    {"LDY 0x%02x,X"     , 3,    4,      0xB4,   cpu_opcode_ldy},    // Zero Page, X
+    {"LDY 0x%04x"       , 3,    4,      0xAC,   cpu_opcode_ldy},    // Absolute
+    {"LDY 0x%04x,X"     , 3,    4,      0xBC,   cpu_opcode_ldy},    // Absolute,X
+    {"LSR A"            , 1,    2,      0x4A,   cpu_opcode_lsr},    // Accumulator
+    {"LSR 0x%02x"       , 2,    5,      0x46,   cpu_opcode_lsr},    // Zero Page
+    {"LSR 0x%02x,X"     , 2,    6,      0x56,   cpu_opcode_lsr},    // Zero Page,X
+    {"LSR 0x%04x"       , 3,    6,      0x4E,   cpu_opcode_lsr},    // Absolute
+    {"LSR 0x%04x,X"     , 3,    7,      0x5E,   cpu_opcode_lsr},    // Absolute,X
     // Add more opcodes here
 };
+
 
 void cpu_print_instruction(cpu_t *cpu, cpu_opcode_entry_t *entry) 
 {
