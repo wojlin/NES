@@ -449,6 +449,98 @@ void cpu_opcode_nop(cpu_t *cpu, uint8_t opcode)
     };
 }
 
+
+
+/*
+    ORA                 ORA "OR" memory with accumulator                  ORA
+
+    Operation: A V M -> A                                 N Z C I D V
+                                                        / / _ _ _ _
+                                (Ref: 2.2.3.1)
+    +----------------+-----------------------+---------+---------+----------+
+    | Addressing Mode| Assembly Language Form| OP CODE |No. Bytes|No. Cycles|
+    +----------------+-----------------------+---------+---------+----------+
+    |  Immediate     |   ORA #Oper           |    09   |    2    |    2     |
+    |  Zero Page     |   ORA Oper            |    05   |    2    |    3     |
+    |  Zero Page,X   |   ORA Oper,X          |    15   |    2    |    4     |
+    |  Absolute      |   ORA Oper            |    0D   |    3    |    4     |
+    |  Absolute,X    |   ORA Oper,X          |    1D   |    3    |    4*    |
+    |  Absolute,Y    |   ORA Oper,Y          |    19   |    3    |    4*    |
+    |  (Indirect,X)  |   ORA (Oper,X)        |    01   |    2    |    6     |
+    |  (Indirect),Y  |   ORA (Oper),Y        |    11   |    2    |    5     |
+    +----------------+-----------------------+---------+---------+----------+
+    * Add 1 on page crossing
+*/
+void cpu_opcode_ora(cpu_t *cpu, uint8_t opcode)
+{
+    uint16_t address;
+
+    switch(opcode)
+    {
+        case 0x09:
+        {
+            address = cpu_fetch_byte(cpu);
+            cpu->memory[address] |= cpu->accumulator;
+            break;
+        }
+        case 0x05:
+        {
+            address = cpu_fetch_byte(cpu);
+            cpu->memory[address] |= cpu->accumulator;
+            break;
+        }
+        case 0x15:
+        {
+            address = cpu_fetch_byte(cpu) + cpu->x_register;
+            cpu->memory[address] |= cpu->accumulator;
+            break;
+        }case 0x0D:
+        {
+            uint8_t address_high = cpu_fetch_byte(cpu);
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            address = ((address_high << 8) | address_low);
+            cpu->memory[address] |= cpu->accumulator;
+            break;
+        }
+        case 0x1D:
+        {
+            uint8_t address_high = cpu_fetch_byte(cpu);
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            address = ((address_high << 8) | address_low) +cpu->x_register;
+            cpu->memory[address] |= cpu->accumulator;
+            break;
+        }
+        case 0x19:
+        {
+            uint8_t address_high = cpu_fetch_byte(cpu);
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            address = ((address_high << 8) | address_low) +cpu->y_register;
+            cpu->memory[address] |= cpu->accumulator;
+            break;
+        }
+        case 0x01:
+        {
+            address = cpu_fetch_byte(cpu);
+            address += cpu->x_register;
+            cpu->memory[address] |= cpu->accumulator;
+            break;
+        }
+        case 0x11:
+        {
+            uint8_t address_high = cpu->y_register;
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            address = (address_high << 8) | address_low;
+            cpu->memory[address] |= cpu->accumulator;
+            break;
+        }
+        default:
+        {
+            cpu_illegal_instruction(opcode);
+        }
+    };
+}
+
+
 cpu_opcode_entry_t cpu_opcode_table[] = {
     //instruction       size  cycles   opcode      handler
     {"LDA #0x%02x"      , 2,    2,      0xA9,   cpu_opcode_lda},    // Immediate addressing
@@ -474,7 +566,15 @@ cpu_opcode_entry_t cpu_opcode_table[] = {
     {"LSR 0x%02x,X"     , 2,    6,      0x56,   cpu_opcode_lsr},    // Zero Page,X
     {"LSR 0x%04x"       , 3,    6,      0x4E,   cpu_opcode_lsr},    // Absolute
     {"LSR 0x%04x,X"     , 3,    7,      0x5E,   cpu_opcode_lsr},    // Absolute,X
-    // Add more opcodes here
+    {"NOP"              , 1,    2,      0xEA,   cpu_opcode_nop},    // Implied
+    {"ORA #0x%02x"      , 2,    2,      0x09,   cpu_opcode_ora},    // Immediate
+    {"ORA 0x%02x"       , 2,    3,      0x05,   cpu_opcode_ora},    // Zero Page
+    {"ORA 0x%02x,X"     , 2,    4,      0x15,   cpu_opcode_ora},    // Zero Page,X
+    {"ORA 0x%04x"       , 3,    4,      0x0D,   cpu_opcode_ora},    // Absolute
+    {"ORA 0x%04x,X"     , 3,    4,      0x1D,   cpu_opcode_ora},    // Absolute,X
+    {"ORA 0x%04x,Y"     , 3,    4,      0x19,   cpu_opcode_ora},    // Absolute,Y
+    {"ORA (0x%02x,X)"   , 2,    6,      0x01,   cpu_opcode_ora},    // (Indirect,X)
+    {"ORA (0x%02x),Y"   , 2,    5,      0x11,   cpu_opcode_ora},    // (Indirect),Y
 };
 
 
@@ -502,7 +602,7 @@ bool cpu_execute(cpu_t *cpu)
 
     uint8_t opcode = cpu_fetch_byte(cpu);
 
-    printf("FETCHED:        0x%02X\n", opcode);
+    //printf("FETCHED:        0x%02X\n", opcode);
     
     int num_opcodes = sizeof(cpu_opcode_table) / sizeof(cpu_opcode_entry_t);
 
