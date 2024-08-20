@@ -9,6 +9,7 @@ int main()
 {
     cpu_t cpu;
     cpu_init(&cpu);
+    cpu.memory[0] = 0xF0;
     cpu.memory[START_ADDRESS] = 0xA9; // LDA
     cpu.memory[START_ADDRESS + 1] = 0x0F; 
     cpu.memory[START_ADDRESS + 2] = 0xA2; // LDX
@@ -17,14 +18,16 @@ int main()
     cpu.memory[START_ADDRESS + 5] = 0x11; 
     cpu.memory[START_ADDRESS + 6] = 0xEA; // NOP
     cpu.memory[START_ADDRESS + 7] = 0x09; // ORA
-    cpu.memory[START_ADDRESS + 5] = 0x00; 
-    cpu.memory[0] = 0xF0;
+    cpu.memory[START_ADDRESS + 8] = 0x00; 
+    cpu.memory[START_ADDRESS + 9] = 0x48; // PHA
+    cpu.memory[START_ADDRESS + 10] = 0x08; // PHP
+    cpu.memory[START_ADDRESS + 11] = 0x68; // PLA
+    cpu.memory[START_ADDRESS + 12] = 0x28; // PLP
 
     bool working = true;
     while(working)
     {
         working = cpu_execute(&cpu);
     }
-    printf("%d\n", cpu.memory[0]);
     return 0;
 }

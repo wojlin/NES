@@ -538,8 +538,139 @@ void cpu_opcode_ora(cpu_t *cpu, uint8_t opcode)
             cpu_illegal_instruction(opcode);
         }
     };
+
+    if(cpu->accumulator == 0)
+    {
+        status_register_update_by_field(&cpu->status_register, ZERO_FLAG, 1);
+    }else
+    {
+        status_register_update_by_field(&cpu->status_register, ZERO_FLAG, 0);
+    }
+
+    if((cpu->memory[address] >> 7) == 1)
+    {
+        status_register_update_by_field(&cpu->status_register, NEGATIVE_FLAG, 1);
+    }else
+    {
+        status_register_update_by_field(&cpu->status_register, NEGATIVE_FLAG, 0);
+    }
 }
 
+/*
+    PHA                   PHA Push accumulator on stack                   PHA
+
+    Operation:  A toS                                     N Z C I D V
+                                                        _ _ _ _ _ _
+                                    (Ref: 8.5)
+    +----------------+-----------------------+---------+---------+----------+
+    | Addressing Mode| Assembly Language Form| OP CODE |No. Bytes|No. Cycles|
+    +----------------+-----------------------+---------+---------+----------+
+    |  Implied       |   PHA                 |    48   |    1    |    3     |
+    +----------------+-----------------------+---------+---------+----------+
+*/
+void cpu_opcode_pha(cpu_t *cpu, uint8_t opcode)
+{
+    switch(opcode)
+    {
+        case 0x48:
+        {
+            cpu->stack[cpu->stack_pointer++] = cpu->accumulator;
+            break;
+        }
+        default:
+        {
+            cpu_illegal_instruction(opcode);
+        }
+    };
+}
+
+
+
+/*
+    PHP                 PHP Push processor status on stack                PHP
+
+    Operation:  P toS                                     N Z C I D V
+                                                        _ _ _ _ _ _
+                                    (Ref: 8.11)
+    +----------------+-----------------------+---------+---------+----------+
+    | Addressing Mode| Assembly Language Form| OP CODE |No. Bytes|No. Cycles|
+    +----------------+-----------------------+---------+---------+----------+
+    |  Implied       |   PHP                 |    08   |    1    |    3     |
+    +----------------+-----------------------+---------+---------+----------+
+*/
+void cpu_opcode_php(cpu_t *cpu, uint8_t opcode)
+{
+    switch(opcode)
+    {
+        case 0x08:
+        {
+            cpu->stack[cpu->stack_pointer++] = cpu->status_register.value;
+            break;
+        }
+        default:
+        {
+            cpu_illegal_instruction(opcode);
+        }
+    };
+}
+
+
+/*
+    PLA                 PLA Pull accumulator from stack                   PLA
+
+    Operation:  A fromS                                   N Z C I D V
+                                                        _ _ _ _ _ _
+                                    (Ref: 8.6)
+    +----------------+-----------------------+---------+---------+----------+
+    | Addressing Mode| Assembly Language Form| OP CODE |No. Bytes|No. Cycles|
+    +----------------+-----------------------+---------+---------+----------+
+    |  Implied       |   PLA                 |    68   |    1    |    4     |
+    +----------------+-----------------------+---------+---------+----------+
+*/
+void cpu_opcode_pla(cpu_t *cpu, uint8_t opcode)
+{
+    switch(opcode)
+    {
+        case 0x68:
+        {
+            cpu->accumulator = cpu->stack[cpu->stack_pointer--];
+            break;
+        }
+        default:
+        {
+            cpu_illegal_instruction(opcode);
+        }
+    };
+}
+
+
+/*
+    PLP               PLP Pull processor status from stack                PLA
+
+    Operation:  P fromS                                   N Z C I D V
+                                                            From Stack
+                                    (Ref: 8.12)
+    +----------------+-----------------------+---------+---------+----------+
+    | Addressing Mode| Assembly Language Form| OP CODE |No. Bytes|No. Cycles|
+    +----------------+-----------------------+---------+---------+----------+
+    |  Implied       |   PLP                 |    28   |    1    |    4     |
+    +----------------+-----------------------+---------+---------+----------+
+*/
+void cpu_opcode_plp(cpu_t *cpu, uint8_t opcode)
+{
+    switch(opcode)
+    {
+        case 0x28:
+        {
+            status_register_update_by_value(&cpu->status_register, cpu->stack[cpu->stack_pointer--]);
+            break;
+        }
+        default:
+        {
+            cpu_illegal_instruction(opcode);
+        }
+    };
+}
 
 cpu_opcode_entry_t cpu_opcode_table[] = {
     //instruction       size  cycles   opcode      handler
@@ -575,7 +706,12 @@ cpu_opcode_entry_t cpu_opcode_table[] = {
     {"ORA 0x%04x,Y"     , 3,    4,      0x19,   cpu_opcode_ora},    // Absolute,Y
     {"ORA (0x%02x,X)"   , 2,    6,      0x01,   cpu_opcode_ora},    // (Indirect,X)
     {"ORA (0x%02x),Y"   , 2,    5,      0x11,   cpu_opcode_ora},    // (Indirect),Y
+    {"PHA"              , 1,    3,      0x48,   cpu_opcode_pha},    // Implied
+    {"PHP"              , 1,    3,      0x08,   cpu_opcode_php},    // Implied
+    {"PLA"              , 1,    4,      0x68,   cpu_opcode_pla},    // Implied
+    {"PLP"              , 1,    4,      0x28,   cpu_opcode_plp},    // Implied
 };
+
 
 
 void cpu_print_instruction(cpu_t *cpu, cpu_opcode_entry_t *entry) 

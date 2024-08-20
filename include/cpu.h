@@ -13,6 +13,7 @@
 
 #define START_ADDRESS 0x1000
 #define RAM_SIZE 65536
+#define STACK_SIZE 255
 
 typedef struct
 {   
@@ -132,6 +133,8 @@ typedef struct
     /*MEMORY*/
 
     uint8_t memory[RAM_SIZE];
+
+    uint8_t stack[STACK_SIZE];
 
 }cpu_t;
 
