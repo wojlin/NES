@@ -10,6 +10,7 @@
 #include <string.h>  // For memset
 
 #include "status_register.h"
+#include "utils.h"
 
 #define START_ADDRESS 0x1000
 #define RAM_SIZE 65536

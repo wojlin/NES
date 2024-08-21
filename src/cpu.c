@@ -672,6 +672,168 @@ void cpu_opcode_plp(cpu_t *cpu, uint8_t opcode)
     };
 }
 
+
+/*
+    ROL          ROL Rotate one bit left (memory or accumulator)          ROL
+
+                +------------------------------+
+                |         M or A               |
+                |   +-+-+-+-+-+-+-+-+    +-+   |
+    Operation:   +-< |7|6|5|4|3|2|1|0| <- |C| <-+         N Z C I D V
+                    +-+-+-+-+-+-+-+-+    +-+             / / / _ _ _
+                                    (Ref: 10.3)
+    +----------------+-----------------------+---------+---------+----------+
+    | Addressing Mode| Assembly Language Form| OP CODE |No. Bytes|No. Cycles|
+    +----------------+-----------------------+---------+---------+----------+
+    |  Accumulator   |   ROL A               |    2A   |    1    |    2     |
+    |  Zero Page     |   ROL Oper            |    26   |    2    |    5     |
+    |  Zero Page,X   |   ROL Oper,X          |    36   |    2    |    6     |
+    |  Absolute      |   ROL Oper            |    2E   |    3    |    6     |
+    |  Absolute,X    |   ROL Oper,X          |    3E   |    3    |    7     |
+    +----------------+-----------------------+---------+---------+----------+
+*/
+void cpu_opcode_rol(cpu_t *cpu, uint8_t opcode)
+{
+    uint8_t old_value;
+    uint8_t new_value;
+
+    switch(opcode)
+    {
+        case 0x2A:
+        {
+            old_value = cpu->accumulator;
+            new_value = rotate_left(cpu->accumulator, 1);
+            cpu->accumulator = new_value;
+            break;
+        }
+        case 0x26:
+        {
+            uint8_t address = cpu_fetch_byte(cpu);
+            old_value = cpu->memory[address];
+            new_value = rotate_left(old_value, 1);
+            cpu->memory[address] = new_value;
+            break;
+        }
+        case 0x36:
+        {
+            uint8_t address = cpu_fetch_byte(cpu) + cpu->x_register;
+            old_value = cpu->memory[address];
+            new_value = rotate_left(old_value, 1);
+            cpu->memory[address] = new_value;
+            break;
+        }
+        case 0x2E:
+        {
+            uint8_t address_high = cpu_fetch_byte(cpu);
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            uint16_t address = ((address_high << 8) | address_low);
+            old_value = cpu->memory[address];
+            new_value = rotate_left(old_value, 1);
+            cpu->memory[address] = new_value;
+            break;
+        }
+        case 0x3E:
+        {
+            uint8_t address_high = cpu_fetch_byte(cpu);
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            uint16_t address = ((address_high << 8) | address_low) + cpu->x_register;
+            old_value = cpu->memory[address];
+            new_value = rotate_left(old_value, 1);
+            cpu->memory[address] = new_value;
+            break;
+        }
+        default:
+        {
+            cpu_illegal_instruction(opcode);
+        }
+    };
+
+
+    status_register_update_by_field(&cpu->status_register, CARRY_FLAG, get_msb(old_value));
+    status_register_update_by_field(&cpu->status_register, NEGATIVE_FLAG, get_msb(new_value));
+}
+
+
+/*
+    ROR          ROR Rotate one bit right (memory or accumulator)         ROR
+
+                +------------------------------+
+                |                              |
+                |   +-+    +-+-+-+-+-+-+-+-+   |
+    Operation:   +-> |C| -> |7|6|5|4|3|2|1|0| >-+         N Z C I D V
+                    +-+    +-+-+-+-+-+-+-+-+             / / / _ _ _
+                                    (Ref: 10.4)
+    +----------------+-----------------------+---------+---------+----------+
+    | Addressing Mode| Assembly Language Form| OP CODE |No. Bytes|No. Cycles|
+    +----------------+-----------------------+---------+---------+----------+
+    |  Accumulator   |   ROR A               |    6A   |    1    |    2     |
+    |  Zero Page     |   ROR Oper            |    66   |    2    |    5     |
+    |  Zero Page,X   |   ROR Oper,X          |    76   |    2    |    6     |
+    |  Absolute      |   ROR Oper            |    6E   |    3    |    6     |
+    |  Absolute,X    |   ROR Oper,X          |    7E   |    3    |    7     |
+    +----------------+-----------------------+---------+---------+----------+
+*/
+void cpu_opcode_ror(cpu_t *cpu, uint8_t opcode)
+{
+    uint8_t old_value;
+    uint8_t new_value;
+
+    switch(opcode)
+    {
+        case 0x6A:
+        {
+            old_value = cpu->accumulator;
+            new_value = rotate_right(cpu->accumulator, 1);
+            cpu->accumulator = new_value;
+            break;
+        }
+        case 0x66:
+        {
+            uint8_t address = cpu_fetch_byte(cpu);
+            old_value = cpu->memory[address];
+            new_value = rotate_right(old_value, 1);
+            cpu->memory[address] = new_value;
+            break;
+        }
+        case 0x76:
+        {
+            uint8_t address = cpu_fetch_byte(cpu) + cpu->x_register;
+            old_value = cpu->memory[address];
+            new_value = rotate_right(old_value, 1);
+            cpu->memory[address] = new_value;
+            break;
+        }
+        case 0x6E:
+        {
+            uint8_t address_high = cpu_fetch_byte(cpu);
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            uint16_t address = ((address_high << 8) | address_low);
+            old_value = cpu->memory[address];
+            new_value = rotate_right(old_value, 1);
+            cpu->memory[address] = new_value;
+            break;
+        }
+        case 0x7E:
+        {
+            uint8_t address_high = cpu_fetch_byte(cpu);
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            uint16_t address = ((address_high << 8) | address_low) + cpu->x_register;
+            old_value = cpu->memory[address];
+            new_value = rotate_right(old_value, 1);
+            cpu->memory[address] = new_value;
+            break;
+        }
+        default:
+        {
+            cpu_illegal_instruction(opcode);
+        }
+    };
+
+
+    status_register_update_by_field(&cpu->status_register, CARRY_FLAG, get_msb(old_value));
+    status_register_update_by_field(&cpu->status_register, NEGATIVE_FLAG, get_msb(new_value));
+}
+
 cpu_opcode_entry_t cpu_opcode_table[] = {
     //instruction       size  cycles   opcode      handler
     {"LDA #0x%02x"      , 2,    2,      0xA9,   cpu_opcode_lda},    // Immediate addressing
@@ -710,7 +872,18 @@ cpu_opcode_entry_t cpu_opcode_table[] = {
     {"PHP"              , 1,    3,      0x08,   cpu_opcode_php},    // Implied
     {"PLA"              , 1,    4,      0x68,   cpu_opcode_pla},    // Implied
     {"PLP"              , 1,    4,      0x28,   cpu_opcode_plp},    // Implied
-};
+    {"ROL A"            , 1,    2,      0x2A,   cpu_opcode_rol},    // Accumulator
+    {"ROL 0x%02x"       , 2,    5,      0x26,   cpu_opcode_rol},    // Zero Page
+    {"ROL 0x%02x,X"     , 2,    6,      0x36,   cpu_opcode_rol},    // Zero Page,X
+    {"ROL 0x%04x"       , 3,    6,      0x2E,   cpu_opcode_rol},    // Absolute
+    {"ROL 0x%04x,X"     , 3,    7,      0x3E,   cpu_opcode_rol},    // Absolute,X
+    {"ROR A"            , 1,    2,      0x6A,   cpu_opcode_ror},    // Accumulator
+    {"ROR 0x%02x"       , 2,    5,      0x66,   cpu_opcode_ror},    // Zero Page
+    {"ROR 0x%02x,X"     , 2,    5,      0x76,   cpu_opcode_ror},    // Zero Page,X
+    {"ROR 0x%04x"       , 3,    6,      0x6E,   cpu_opcode_ror},    // Absolute
+    {"ROR 0x%04x,X"     , 3,    7,      0x7E,   cpu_opcode_ror},    // Absolute,X
+};  
+
 
 
 

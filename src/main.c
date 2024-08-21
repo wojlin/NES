@@ -23,6 +23,8 @@ int main()
     cpu.memory[START_ADDRESS + 10] = 0x08; // PHP
     cpu.memory[START_ADDRESS + 11] = 0x68; // PLA
     cpu.memory[START_ADDRESS + 12] = 0x28; // PLP
+    cpu.memory[START_ADDRESS + 13] = 0x2A; // ROL
+    cpu.memory[START_ADDRESS + 14] = 0x6A; // ROR
 
     bool working = true;
     while(working)
