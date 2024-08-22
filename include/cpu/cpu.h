@@ -9,14 +9,15 @@
 #include <stdlib.h>  // For exit and EXIT_FAILURE
 #include <string.h>  // For memset
 
-#include "status_register.h"
-#include "utils.h"
+
+#include "cpu_status_register.h"
+#include "../utils.h"
 
 #define START_ADDRESS 0x1000
 #define RAM_SIZE 65536
 #define STACK_SIZE 255
 
-typedef struct
+typedef struct cpu_t
 {   
     /*
     THE REGISTERS INSIDE THE 6502 MICROPROCESSOR
@@ -65,7 +66,7 @@ typedef struct
     Y, or some other register directly.
     */
     
-    status_register_t status_register;
+    cpu_status_register_t status_register;
     /*
      THE STATUS REGISTER
 
@@ -139,7 +140,6 @@ typedef struct
 
 }cpu_t;
 
-
 typedef void (*cpu_opcode_handler_t)(cpu_t *cpu, uint8_t opcode);
 
 typedef struct {
@@ -150,13 +150,12 @@ typedef struct {
     cpu_opcode_handler_t handler;
 } cpu_opcode_entry_t;
 
-
-
 void cpu_init(cpu_t *cpu);
 bool cpu_execute(cpu_t *cpu);
 uint8_t cpu_fetch_byte(cpu_t *cpu);
 void cpu_illegal_instruction(uint8_t opcode);
 uint8_t cpu_read_byte(cpu_t *cpu, uint16_t address);
+void cpu_write_byte(cpu_t *cpu, uint16_t address, uint8_t value);
 void cpu_print_instruction(cpu_t *cpu, cpu_opcode_entry_t *entry);
 
 #endif //CPU_H

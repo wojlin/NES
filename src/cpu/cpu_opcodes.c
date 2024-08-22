@@ -1,34 +1,103 @@
-#include "../include/cpu.h"
+#include "../include/cpu/cpu_opcodes.h"
 
-void cpu_init(cpu_t *cpu)
+cpu_opcode_entry_t cpu_opcode_table[] = {
+
+    //instruction       size  cycles   opcode      handler
+
+    //INSTRUCTION ADC
+    {"ADC #0x%02x"      , 2,    2,      0x69,   cpu_opcode_adc},    // Immediate
+    {"ADC 0x%02x"       , 2,    3,      0x65,   cpu_opcode_adc},    // Zero Page
+    {"ADC 0x%02x,X"     , 2,    4,      0x75,   cpu_opcode_adc},    // Zero Page,X
+    {"ADC 0x%04x"       , 3,    4,      0x60,   cpu_opcode_adc},    // Absolute
+    {"ADC 0x%04x,X"     , 3,    4,      0x70,   cpu_opcode_adc},    // Absolute,X
+    {"ADC 0x%04x,Y"     , 3,    4,      0x79,   cpu_opcode_adc},    // Absolute,Y
+    {"ADC (0x%02x,X)"   , 2,    6,      0x61,   cpu_opcode_adc},    // (Indirect,X)
+    {"ADC (0x%02x),Y"   , 2,    5,      0x71,   cpu_opcode_adc},    // (Indirect),Y
+
+    //INSTRUCTION AND
+    {"AND #0x%02x"      , 2,    2,      0x29,   cpu_opcode_and},    // Immediate
+    {"AND 0x%02x"       , 2,    3,      0x25,   cpu_opcode_and},    // Zero Page
+    {"AND 0x%02x,X"     , 2,    4,      0x35,   cpu_opcode_and},    // Zero Page,X
+    {"AND 0x%04x"       , 3,    4,      0x2D,   cpu_opcode_and},    // Absolute
+    {"AND 0x%04x,X"     , 3,    4,      0x3D,   cpu_opcode_and},    // Absolute,X
+    {"AND 0x%04x,Y"     , 3,    4,      0x39,   cpu_opcode_and},    // Absolute,Y
+    {"AND (0x%02x,X)"   , 2,    6,      0x21,   cpu_opcode_and},    // (Indirect,X)
+    {"AND (0x%02x),Y"   , 2,    5,      0x21,   cpu_opcode_and},    // (Indirect,Y)
+
+    //INSTRUCTION LDA
+    {"LDA #0x%02x"      , 2,    2,      0xA9,   cpu_opcode_lda},    // Immediate addressing
+    {"LDA 0x%02x"       , 2,    3,      0xA5,   cpu_opcode_lda},    // Zero Page
+    {"LDA 0x%02x,X"     , 2,    4,      0xB5,   cpu_opcode_lda},    // Zero Page,X
+    {"LDA 0x%04x"       , 3,    4,      0xAD,   cpu_opcode_lda},    // Absolute
+    {"LDA 0x%04x,X"     , 3,    4,      0xBD,   cpu_opcode_lda},    // Absolute,X
+    {"LDA 0x%04x,Y"     , 3,    4,      0xB9,   cpu_opcode_lda},    // Absolute,Y
+    {"LDA (0x%02x,X)"   , 2,    6,      0xA1,   cpu_opcode_lda},    // (Indirect,X)
+    {"LDA (0x%02x),Y"   , 2,    5,      0xB1,   cpu_opcode_lda},    // (Indirect),Y
+
+    //INSTRUCTION LDX
+    {"LDX #0x%02x"      , 2,    2,      0xA2,   cpu_opcode_ldx},    // Immediate addressing
+    {"LDX 0x%02x"       , 2,    3,      0xA6,   cpu_opcode_ldx},    // Zero Page
+    {"LDX 0x%02x,Y"     , 2,    4,      0xB6,   cpu_opcode_ldx},    // Zero Page,Y
+    {"LDX 0x%04x"       , 3,    4,      0xAE,   cpu_opcode_ldx},    // Absolute
+    {"LDX 0x%04x,Y"     , 3,    4,      0xBE,   cpu_opcode_ldx},    // Absolute,Y
+
+    //INSTRUCTION LDY
+    {"LDY #0x%02x"      , 2,    2,      0xA0,   cpu_opcode_ldy},    // Immediate addressing
+    {"LDY 0x%02x"       , 2,    3,      0xA4,   cpu_opcode_ldy},    // Zero Page
+    {"LDY 0x%02x,X"     , 3,    4,      0xB4,   cpu_opcode_ldy},    // Zero Page, X
+    {"LDY 0x%04x"       , 3,    4,      0xAC,   cpu_opcode_ldy},    // Absolute
+    {"LDY 0x%04x,X"     , 3,    4,      0xBC,   cpu_opcode_ldy},    // Absolute,X
+
+    //INSTRUCTION LSR
+    {"LSR A"            , 1,    2,      0x4A,   cpu_opcode_lsr},    // Accumulator
+    {"LSR 0x%02x"       , 2,    5,      0x46,   cpu_opcode_lsr},    // Zero Page
+    {"LSR 0x%02x,X"     , 2,    6,      0x56,   cpu_opcode_lsr},    // Zero Page,X
+    {"LSR 0x%04x"       , 3,    6,      0x4E,   cpu_opcode_lsr},    // Absolute
+    {"LSR 0x%04x,X"     , 3,    7,      0x5E,   cpu_opcode_lsr},    // Absolute,X
+
+    //INSTRUCTION NOP
+    {"NOP"              , 1,    2,      0xEA,   cpu_opcode_nop},    // Implied
+
+    //INSTRUCTION ORA
+    {"ORA #0x%02x"      , 2,    2,      0x09,   cpu_opcode_ora},    // Immediate
+    {"ORA 0x%02x"       , 2,    3,      0x05,   cpu_opcode_ora},    // Zero Page
+    {"ORA 0x%02x,X"     , 2,    4,      0x15,   cpu_opcode_ora},    // Zero Page,X
+    {"ORA 0x%04x"       , 3,    4,      0x0D,   cpu_opcode_ora},    // Absolute
+    {"ORA 0x%04x,X"     , 3,    4,      0x1D,   cpu_opcode_ora},    // Absolute,X
+    {"ORA 0x%04x,Y"     , 3,    4,      0x19,   cpu_opcode_ora},    // Absolute,Y
+    {"ORA (0x%02x,X)"   , 2,    6,      0x01,   cpu_opcode_ora},    // (Indirect,X)
+    {"ORA (0x%02x),Y"   , 2,    5,      0x11,   cpu_opcode_ora},    // (Indirect),Y
+
+    //INSTRUCTION PHA
+    {"PHA"              , 1,    3,      0x48,   cpu_opcode_pha},    // Implied
+
+    //INSTRUCTION PHP
+    {"PHP"              , 1,    3,      0x08,   cpu_opcode_php},    // Implied
+
+    //INSTRUCTION PLA
+    {"PLA"              , 1,    4,      0x68,   cpu_opcode_pla},    // Implied
+
+    //INSTRUCTION PLP
+    {"PLP"              , 1,    4,      0x28,   cpu_opcode_plp},    // Implied
+
+    //INSTRUCTION ROL
+    {"ROL A"            , 1,    2,      0x2A,   cpu_opcode_rol},    // Accumulator
+    {"ROL 0x%02x"       , 2,    5,      0x26,   cpu_opcode_rol},    // Zero Page
+    {"ROL 0x%02x,X"     , 2,    6,      0x36,   cpu_opcode_rol},    // Zero Page,X
+    {"ROL 0x%04x"       , 3,    6,      0x2E,   cpu_opcode_rol},    // Absolute
+    {"ROL 0x%04x,X"     , 3,    7,      0x3E,   cpu_opcode_rol},    // Absolute,X
+
+    //INSTRUCTION ROR
+    {"ROR A"            , 1,    2,      0x6A,   cpu_opcode_ror},    // Accumulator
+    {"ROR 0x%02x"       , 2,    5,      0x66,   cpu_opcode_ror},    // Zero Page
+    {"ROR 0x%02x,X"     , 2,    5,      0x76,   cpu_opcode_ror},    // Zero Page,X
+    {"ROR 0x%04x"       , 3,    6,      0x6E,   cpu_opcode_ror},    // Absolute
+    {"ROR 0x%04x,X"     , 3,    7,      0x7E,   cpu_opcode_ror},    // Absolute,X
+};  
+
+size_t cpu_get_opcode_amount()
 {
-    cpu->accumulator = 0;
-    cpu->x_register = 0;
-    cpu->y_register = 0;
-    cpu->stack_pointer = 0;
-    cpu->program_counter = START_ADDRESS;
-    status_register_update_by_value(&cpu->status_register, 0);
-    memset(cpu->memory, 0, sizeof(cpu->memory));
-}
-
-uint8_t cpu_read_byte(cpu_t *cpu, uint16_t address)
-{
-    uint8_t value = cpu->memory[address];
-    return value;
-}
-
-uint8_t cpu_fetch_byte(cpu_t *cpu)
-{
-    uint8_t value = cpu->memory[cpu->program_counter];
-    cpu->program_counter++;
-    return value;
-}
-
-
-void cpu_illegal_instruction(uint8_t opcode)
-{
-    printf("'0x%02X' is an illegal instruction, terminating program...\n", opcode);
-    exit(EXIT_FAILURE);
+    return sizeof(cpu_opcode_table) / sizeof(cpu_opcode_entry_t);
 }
 
 
@@ -58,7 +127,7 @@ void cpu_opcode_lda(cpu_t *cpu, uint8_t opcode)
     {
         case 0xA9:
         {
-            cpu->accumulator = cpu_fetch_byte(cpu);;
+            cpu->accumulator = cpu_fetch_byte(cpu);
             break;
         }
         case 0xA5:
@@ -440,6 +509,7 @@ void cpu_opcode_nop(cpu_t *cpu, uint8_t opcode)
     {
         case 0xEA:
         {
+            cpu->accumulator = cpu->accumulator; // only to suppress warning
             break;
         }
         default:
@@ -834,94 +904,164 @@ void cpu_opcode_ror(cpu_t *cpu, uint8_t opcode)
     status_register_update_by_field(&cpu->status_register, NEGATIVE_FLAG, get_msb(new_value));
 }
 
-cpu_opcode_entry_t cpu_opcode_table[] = {
-    //instruction       size  cycles   opcode      handler
-    {"LDA #0x%02x"      , 2,    2,      0xA9,   cpu_opcode_lda},    // Immediate addressing
-    {"LDA 0x%02x"       , 2,    3,      0xA5,   cpu_opcode_lda},    // Zero Page
-    {"LDA 0x%02x,X"     , 2,    4,      0xB5,   cpu_opcode_lda},    // Zero Page,X
-    {"LDA 0x%04x"       , 3,    4,      0xAD,   cpu_opcode_lda},    // Absolute
-    {"LDA 0x%04x,X"     , 3,    4,      0xBD,   cpu_opcode_lda},    // Absolute,X
-    {"LDA 0x%04x,Y"     , 3,    4,      0xB9,   cpu_opcode_lda},    // Absolute,Y
-    {"LDA (0x%02x,X)"   , 2,    6,      0xA1,   cpu_opcode_lda},    // (Indirect,X)
-    {"LDA (0x%02x),Y"   , 2,    5,      0xB1,   cpu_opcode_lda},    // (Indirect),Y
-    {"LDX #0x%02x"      , 2,    2,      0xA2,   cpu_opcode_ldx},    // Immediate addressing
-    {"LDX 0x%02x"       , 2,    3,      0xA6,   cpu_opcode_ldx},    // Zero Page
-    {"LDX 0x%02x,Y"     , 2,    4,      0xB6,   cpu_opcode_ldx},    // Zero Page,Y
-    {"LDX 0x%04x"       , 3,    4,      0xAE,   cpu_opcode_ldx},    // Absolute
-    {"LDX 0x%04x,Y"     , 3,    4,      0xBE,   cpu_opcode_ldx},    // Absolute,Y
-    {"LDY #0x%02x"      , 2,    2,      0xA0,   cpu_opcode_ldy},    // Immediate addressing
-    {"LDY 0x%02x"       , 2,    3,      0xA4,   cpu_opcode_ldy},    // Zero Page
-    {"LDY 0x%02x,X"     , 3,    4,      0xB4,   cpu_opcode_ldy},    // Zero Page, X
-    {"LDY 0x%04x"       , 3,    4,      0xAC,   cpu_opcode_ldy},    // Absolute
-    {"LDY 0x%04x,X"     , 3,    4,      0xBC,   cpu_opcode_ldy},    // Absolute,X
-    {"LSR A"            , 1,    2,      0x4A,   cpu_opcode_lsr},    // Accumulator
-    {"LSR 0x%02x"       , 2,    5,      0x46,   cpu_opcode_lsr},    // Zero Page
-    {"LSR 0x%02x,X"     , 2,    6,      0x56,   cpu_opcode_lsr},    // Zero Page,X
-    {"LSR 0x%04x"       , 3,    6,      0x4E,   cpu_opcode_lsr},    // Absolute
-    {"LSR 0x%04x,X"     , 3,    7,      0x5E,   cpu_opcode_lsr},    // Absolute,X
-    {"NOP"              , 1,    2,      0xEA,   cpu_opcode_nop},    // Implied
-    {"ORA #0x%02x"      , 2,    2,      0x09,   cpu_opcode_ora},    // Immediate
-    {"ORA 0x%02x"       , 2,    3,      0x05,   cpu_opcode_ora},    // Zero Page
-    {"ORA 0x%02x,X"     , 2,    4,      0x15,   cpu_opcode_ora},    // Zero Page,X
-    {"ORA 0x%04x"       , 3,    4,      0x0D,   cpu_opcode_ora},    // Absolute
-    {"ORA 0x%04x,X"     , 3,    4,      0x1D,   cpu_opcode_ora},    // Absolute,X
-    {"ORA 0x%04x,Y"     , 3,    4,      0x19,   cpu_opcode_ora},    // Absolute,Y
-    {"ORA (0x%02x,X)"   , 2,    6,      0x01,   cpu_opcode_ora},    // (Indirect,X)
-    {"ORA (0x%02x),Y"   , 2,    5,      0x11,   cpu_opcode_ora},    // (Indirect),Y
-    {"PHA"              , 1,    3,      0x48,   cpu_opcode_pha},    // Implied
-    {"PHP"              , 1,    3,      0x08,   cpu_opcode_php},    // Implied
-    {"PLA"              , 1,    4,      0x68,   cpu_opcode_pla},    // Implied
-    {"PLP"              , 1,    4,      0x28,   cpu_opcode_plp},    // Implied
-    {"ROL A"            , 1,    2,      0x2A,   cpu_opcode_rol},    // Accumulator
-    {"ROL 0x%02x"       , 2,    5,      0x26,   cpu_opcode_rol},    // Zero Page
-    {"ROL 0x%02x,X"     , 2,    6,      0x36,   cpu_opcode_rol},    // Zero Page,X
-    {"ROL 0x%04x"       , 3,    6,      0x2E,   cpu_opcode_rol},    // Absolute
-    {"ROL 0x%04x,X"     , 3,    7,      0x3E,   cpu_opcode_rol},    // Absolute,X
-    {"ROR A"            , 1,    2,      0x6A,   cpu_opcode_ror},    // Accumulator
-    {"ROR 0x%02x"       , 2,    5,      0x66,   cpu_opcode_ror},    // Zero Page
-    {"ROR 0x%02x,X"     , 2,    5,      0x76,   cpu_opcode_ror},    // Zero Page,X
-    {"ROR 0x%04x"       , 3,    6,      0x6E,   cpu_opcode_ror},    // Absolute
-    {"ROR 0x%04x,X"     , 3,    7,      0x7E,   cpu_opcode_ror},    // Absolute,X
-};  
 
+/*
+  ADC               Add memory to accumulator with carry                ADC
 
-
-
-void cpu_print_instruction(cpu_t *cpu, cpu_opcode_entry_t *entry) 
+  Operation:  A + M + C -> A, C                         N Z C I D V
+                                                        / / / _ _ /
+                                (Ref: 2.2.1)
+  +----------------+-----------------------+---------+---------+----------+
+  | Addressing Mode| Assembly Language Form| OP CODE |No. Bytes|No. Cycles|
+  +----------------+-----------------------+---------+---------+----------+
+  |  Immediate     |   ADC #Oper           |    69   |    2    |    2     |
+  |  Zero Page     |   ADC Oper            |    65   |    2    |    3     |
+  |  Zero Page,X   |   ADC Oper,X          |    75   |    2    |    4     |
+  |  Absolute      |   ADC Oper            |    60   |    3    |    4     |
+  |  Absolute,X    |   ADC Oper,X          |    70   |    3    |    4*    |
+  |  Absolute,Y    |   ADC Oper,Y          |    79   |    3    |    4*    |
+  |  (Indirect,X)  |   ADC (Oper,X)        |    61   |    2    |    6     |
+  |  (Indirect),Y  |   ADC (Oper),Y        |    71   |    2    |    5*    |
+  +----------------+-----------------------+---------+---------+----------+
+  * Add 1 if page boundary is crossed.
+*/
+void cpu_opcode_adc(cpu_t *cpu, uint8_t opcode)
 {
-    uint64_t result = 0;
-    uint8_t length = entry->size - 1;  // The number of bytes to read
+    uint16_t old_value = cpu->accumulator;
+    uint16_t value_to_add;
 
-    for (size_t i = 0; i < length; i++) {
-        result <<= 8;  // Shift the current result 8 bits to the left to make space for the next byte
-        uint16_t address = cpu->program_counter + i;
-        uint8_t r_byte = cpu_read_byte(cpu, address);
-        result |= r_byte;  // Combine the next byte using bitwise OR
-    }
-
-    printf("INSTRUCTION:    ");
-    printf(entry->name, result); 
-    printf("\n");
-}
-
-bool cpu_execute(cpu_t *cpu)
-{   
-
-    bool found = false;
-
-    uint8_t opcode = cpu_fetch_byte(cpu);
-
-    //printf("FETCHED:        0x%02X\n", opcode);
-    
-    int num_opcodes = sizeof(cpu_opcode_table) / sizeof(cpu_opcode_entry_t);
-
-    for (int i = 0; i < num_opcodes; i++) {
-        if (cpu_opcode_table[i].opcode == opcode) {
-            cpu_print_instruction(cpu, &cpu_opcode_table[i]);
-            cpu_opcode_table[i].handler(cpu, opcode);
-            found = true;
+    switch(opcode)
+    {
+        case 0x69:
+        {
+            value_to_add = cpu_fetch_byte(cpu);
+            cpu->accumulator += value_to_add;
             break;
         }
-    }
-    return found;
+        case 0x65:
+        {
+            uint8_t address = cpu_fetch_byte(cpu);
+            value_to_add = cpu->memory[address];
+            cpu->accumulator += value_to_add;
+            break;
+        }
+        case 0x75:
+        {
+            uint8_t address = cpu_fetch_byte(cpu);
+            value_to_add = cpu->memory[address] + cpu->x_register;
+            cpu->accumulator += value_to_add;
+            break;
+        }
+        case 0x60:
+        {
+            uint8_t address_high = cpu_fetch_byte(cpu);
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            uint16_t address = ((address_high << 8) | address_low);
+            value_to_add = cpu->memory[address];
+            cpu->accumulator += value_to_add;
+            break;
+        }
+        case 0x70:
+        {
+            uint8_t address_high = cpu_fetch_byte(cpu);
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            uint16_t address = ((address_high << 8) | address_low) + cpu->x_register;
+            value_to_add = cpu->memory[address];
+            cpu->accumulator += value_to_add;
+            break;
+        }
+        case 0x79:
+        {
+            uint8_t address_high = cpu_fetch_byte(cpu);
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            uint16_t address = ((address_high << 8) | address_low) + cpu->y_register;
+            value_to_add = cpu->memory[address];
+            cpu->accumulator += value_to_add;
+            break;
+        }
+        case 0x61:
+        {
+            uint8_t address = cpu_fetch_byte(cpu) + cpu->x_register;
+            value_to_add = cpu->memory[address];
+            cpu->accumulator += value_to_add;
+            break;
+        }
+        case 0x71:
+        {
+            uint8_t address_high = cpu->y_register;
+            uint8_t address_low = cpu_fetch_byte(cpu);
+            uint16_t address = (address_high << 8) | address_low;
+            value_to_add = cpu->memory[address];
+            cpu->accumulator += value_to_add;
+            break;
+        }
+        default:
+        {
+            cpu_illegal_instruction(opcode);
+        }
+    };
+
+    uint16_t result = old_value + value_to_add + (cpu->status_register.carry_flag);
+    cpu->accumulator = result & 0xFF; // Keep it to 8 bits
+
+    status_register_update_by_field(&cpu->status_register, ZERO_FLAG, cpu->accumulator == 0);
+    status_register_update_by_field(&cpu->status_register, CARRY_FLAG, result > 255);
+    status_register_update_by_field(&cpu->status_register, NEGATIVE_FLAG, get_msb(cpu->accumulator));
+    
+    bool overflow = (~(old_value ^ value_to_add) & (old_value ^ result) & 0x80);
+    status_register_update_by_field(&cpu->status_register, OVERFLOW_FLAG, overflow);
+}
+
+
+/*
+    AND                  "AND" memory with accumulator                    AND
+
+    Operation:  A /\ M -> A                               N Z C I D V
+                                                        / / _ _ _ _
+                                (Ref: 2.2.3.0)
+    +----------------+-----------------------+---------+---------+----------+
+    | Addressing Mode| Assembly Language Form| OP CODE |No. Bytes|No. Cycles|
+    +----------------+-----------------------+---------+---------+----------+
+    |  Immediate     |   AND #Oper           |    29   |    2    |    2     |
+    |  Zero Page     |   AND Oper            |    25   |    2    |    3     |
+    |  Zero Page,X   |   AND Oper,X          |    35   |    2    |    4     |
+    |  Absolute      |   AND Oper            |    2D   |    3    |    4     |
+    |  Absolute,X    |   AND Oper,X          |    3D   |    3    |    4*    |
+    |  Absolute,Y    |   AND Oper,Y          |    39   |    3    |    4*    |
+    |  (Indirect,X)  |   AND (Oper,X)        |    21   |    2    |    6     |
+    |  (Indirect,Y)  |   AND (Oper),Y        |    31   |    2    |    5     |
+    +----------------+-----------------------+---------+---------+----------+
+    * Add 1 if page boundary is crossed.
+*/
+void cpu_opcode_and(cpu_t *cpu, uint8_t opcode)
+{   
+    uint8_t memory_value;
+    uint8_t accumulator_value = cpu->accumulator;
+
+    switch(opcode)
+    {
+        case 0x29:
+        {
+            memory_value = cpu_fetch_byte(cpu);
+            cpu->accumulator = memory_value & accumulator_value;
+            break;
+        }
+        case 0x25:
+        {
+            memory_value = cpu->memory[cpu_fetch_byte(cpu)];
+            cpu->accumulator = memory_value & accumulator_value;
+            break;
+        }
+        case 0x35:
+        {
+            memory_value = cpu->memory[cpu_fetch_byte(cpu) + cpu->x_register];
+            cpu->accumulator = memory_value & accumulator_value;
+            break;
+        }
+        default:
+        {
+            cpu_illegal_instruction(opcode);
+        }
+
+    };
 }

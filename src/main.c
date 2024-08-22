@@ -1,8 +1,9 @@
 #include <stdio.h>
 
-#include "../include/status_register.h"
-#include "../include/cpu.h"
 
+#include "../include/cpu/cpu_status_register.h"
+#include "../include/cpu/cpu.h"
+#include "../include/cpu/cpu_addressing_modes.h"
 
 
 int main()
@@ -25,6 +26,8 @@ int main()
     cpu.memory[START_ADDRESS + 12] = 0x28; // PLP
     cpu.memory[START_ADDRESS + 13] = 0x2A; // ROL
     cpu.memory[START_ADDRESS + 14] = 0x6A; // ROR
+    cpu.memory[START_ADDRESS + 15] = 0x69; // ADC
+    cpu.memory[START_ADDRESS + 16] = 0x55; 
 
     bool working = true;
     while(working)

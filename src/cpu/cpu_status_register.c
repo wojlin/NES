@@ -1,6 +1,6 @@
-#include "../include/status_register.h"
+#include "../include/cpu/cpu_status_register.h"
 
-void status_register_update_by_field(status_register_t *status_register, status_field_t field, bool value)
+void status_register_update_by_field(cpu_status_register_t *status_register, cpu_status_field_t field, bool value)
 {
     switch (field) {
         case CARRY_FLAG:
@@ -40,7 +40,7 @@ void status_register_update_by_field(status_register_t *status_register, status_
         | (status_register->negative_flag     << 7);
 }
 
-void status_register_update_by_value(status_register_t *status_register, uint8_t new_value)
+void status_register_update_by_value(cpu_status_register_t *status_register, uint8_t new_value)
 {
     status_register->carry_flag =        ((new_value >> 0) & 1) == 1 ? true : false;
     status_register->zero_flag =         ((new_value >> 1) & 1) == 1 ? true : false;
@@ -53,7 +53,7 @@ void status_register_update_by_value(status_register_t *status_register, uint8_t
     status_register->value = new_value;
 }
 
-void status_register_print(status_register_t *status_register) 
+void status_register_print(cpu_status_register_t *status_register) 
 {
     printf("### status register ###\n");
     printf("value: ");

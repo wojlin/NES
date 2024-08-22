@@ -9,10 +9,10 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
 
 # Include directories
-include_directories(include)
+include_directories("include" "include/cpu")
 
 # Find all .c files in the src directory
-file(GLOB SOURCES "src/*.c")
+file(GLOB SOURCES "src/*.c" "src/cpu/*c")
 
 # Add the executable
 add_executable(nes_emulator ${SOURCES})
